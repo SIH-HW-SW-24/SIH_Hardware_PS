@@ -85,12 +85,16 @@ void loop() {
     if (Firebase.RTDB.getInt(&fbdo, "Temp")){
     if (fbdo.dataType() == "int"){ 
     int soilTemperature =  fbdo.intData();
+    Serial.println("soilTemperature:"); 
+    Serial.println(soilTemperature); 
      }
     }
     
     if (Firebase.RTDB.getInt(&fbdo, "Moisture")){
     if (fbdo.dataType() == "int"){ 
     int soilMoistureValue =  fbdo.intData();
+    Serial.println("soilMoistureValue:"); 
+    Serial.println(soilMoistureValue); 
      }
     }
 
@@ -98,6 +102,8 @@ void loop() {
     if (Firebase.RTDB.getInt(&fbdo, "Rain")){
     if (fbdo.dataType() == "int"){ 
     int rainValue =  fbdo.intData();  
+    Serial.println("rainValue:"); 
+    Serial.println(rainValue); 
       }
     }
 
