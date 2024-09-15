@@ -2,7 +2,7 @@
 #include <WiFi.h>
 #include <DHT.h>
 
-#define DHTPIN 2     // Digital pin connected to the DHT sensor
+#define DHTPIN 4     // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT11   // DHT 11
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -40,6 +40,8 @@ void setup() {
   pinMode(SOIL_MOISTURE_PIN, INPUT);
   pinMode(RAIN_SENSOR_PIN, INPUT);
 
+  
+
    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -66,7 +68,9 @@ void setup() {
 
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
-  
+
+  analogReadResolution(12); // Ensure 12-bit resolution (0 to 4095)
+
 }
 
 void loop() {
@@ -74,14 +78,15 @@ void loop() {
   delay(500); 
   int soilMoistureValue = analogRead(SOIL_MOISTURE_PIN);
   int rainValue = analogRead(RAIN_SENSOR_PIN);
-  float temp1 = dht.readTemperature();
-  
+  float temperature = dht.readTemperature();
+
+
 if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 10000 || sendDataPrevMillis == 0)) {
  sendDataPrevMillis = millis();
 
-  Firebase.RTDB.setFloat(&fbdo, "Temp", temp1);
+  Firebase.RTDB.setFloat(&fbdo, "Temp", temperature);
   Serial.print("Temp: "); 
-    Serial.println(temp1); 
+    Serial.println(temperature); 
   Firebase.RTDB.setInt(&fbdo, "Moisture", soilMoistureValue);
   Serial.print("soilMoistureValue: "); 
     Serial.println(soilMoistureValue); 
