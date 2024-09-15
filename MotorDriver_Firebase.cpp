@@ -20,6 +20,8 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
+
+
 unsigned long sendDataPrevMillis = 0;
 bool signupOK = false;
 
@@ -28,10 +30,10 @@ bool signupOK = false;
 #define MOTOR_IN2 26
 #define MOTOR_ENA 14
 
-int soilTemperature;
-int soilMoistureValue;
+int category;
+int moisture;
 int rainValue;
-int cropCategory;
+int soilTemperature;
 
 void setup() {
   Serial.begin(115200);
@@ -67,7 +69,6 @@ void setup() {
   pinMode(MOTOR_IN1, OUTPUT);
   pinMode(MOTOR_IN2, OUTPUT);
   pinMode(MOTOR_ENA, OUTPUT);
-  stopMotor();
 } 
 
 void loop() {
@@ -76,15 +77,15 @@ void loop() {
      
     if (Firebase.RTDB.getInt(&fbdo, "cropCategory")){
     if (fbdo.dataType() == "int"){ 
-    int cropCategory =  fbdo.intData();   
+    category =  fbdo.intData();   
     Serial.println("cropCategory:"); 
-    Serial.println(cropCategory); 
+    Serial.println(category); 
      }
     }
 
     if (Firebase.RTDB.getInt(&fbdo, "Temp")){
     if (fbdo.dataType() == "int"){ 
-    int soilTemperature =  fbdo.intData();
+    soilTemperature =  fbdo.intData();
     Serial.println("soilTemperature:"); 
     Serial.println(soilTemperature); 
      }
@@ -92,65 +93,57 @@ void loop() {
     
     if (Firebase.RTDB.getInt(&fbdo, "Moisture")){
     if (fbdo.dataType() == "int"){ 
-    int soilMoistureValue =  fbdo.intData();
+    moisture =  fbdo.intData();
     Serial.println("soilMoistureValue:"); 
-    Serial.println(soilMoistureValue); 
+    Serial.println(moisture); 
      }
     }
 
 
     if (Firebase.RTDB.getInt(&fbdo, "Rain")){
     if (fbdo.dataType() == "int"){ 
-    int rainValue =  fbdo.intData();  
+    rainValue =  fbdo.intData();  
     Serial.println("rainValue:"); 
     Serial.println(rainValue); 
       }
     }
 
-  int motorSpeed = calculateWaterRequirement(soilTemperature, soilMoistureValue, rainValue, cropCategory);
-
-  // Control motor speed based on calculation
-  if (rainValue > 3000) {  // Rain detected
-    stopMotor();
-  } else {
-    setMotorSpeed(motorSpeed);
-  }
-
-  delay(2000);  // Delay for stability
-}
-}
-
-int calculateWaterRequirement(float temp, int moisture, int rain, int category) {
-  int speed = 0;
+    int speed = 0;
   
   if (category == 1) {                   // Low water requirement
-    if (moisture < 2000) speed = 75;        // Low Moisture
-    else if (moisture >= 2000 && moisture < 5000) speed = 50;    // High Moisture
+    if (moisture < 1700) speed = 70;          // Low Moisture
+    else if (moisture >= 1700 && moisture < 2100) speed = 60;     // Medium Moisture
+    else if (moisture >= 2100) speed = 50;     // Medium Moisture
   } 
   
   else if (category == 2) {             // Medium water requirement
-    if (moisture < 2000) speed = 75;        // Low Moisture
-    else if (moisture >= 2000 && moisture < 5000) speed = 50;   // Medium Moisture
+    if (moisture < 1700) speed = 85;          // Low Moisture
+    else if (moisture >= 1700 && moisture < 2100) speed = 65;     // Medium Moisture
+    else if (moisture >= 2100) speed = 50;     // Medium Moisture
 
   } 
   
   else if (category == 3) {             // High water requirement
-    if (moisture < 2000) speed = 100;          // Low Moisture
-    else if (moisture >= 2000 && moisture < 5000) speed = 75;     // Medium Moisture
+    if (moisture < 1700) speed = 100;          // Low Moisture
+    else if (moisture >= 1700 && moisture < 2100) speed = 75;     // Medium Moisture
+    else if (moisture >= 2100) speed = 50;     // Medium Moisture
   
   }
 
-  return speed;
-}
-
-void setMotorSpeed(int speed) {
+  if (rainValue > 150) {  // Rain detected
+    speed=0;
+  }
+  Serial.print("Speed: ");
+  Serial.println(speed);
+  
   analogWrite(MOTOR_ENA, speed);
   digitalWrite(MOTOR_IN1, HIGH);
   digitalWrite(MOTOR_IN2, LOW);
-}
-
-void stopMotor() {
+  delay(10000);
   digitalWrite(MOTOR_IN1, LOW);
   digitalWrite(MOTOR_IN2, LOW);
   analogWrite(MOTOR_ENA, 0);
+  
+  delay(2000);  // Delay for stability
+}
 }
